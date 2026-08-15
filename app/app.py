@@ -3,8 +3,17 @@ app = Flask(__name__)
 import secrets
 import psycopg2
 import redis
+import os
 
-r = redis.Redis(host='localhost', port=6379, decode_responses=True)
+redis_host = os.getenv('REDIS_HOST', 'localhost')
+redis_port = int(os.getenv('REDIS_PORT', 6379))
+postgres_host = os.getenv('POSTGRES_HOST', 'localhost')
+postgres_db = os.getenv('POSTGRES_DB', 'urlshortener')
+postgres_user = os.getenv('POSTGRES_USER', 'postgres')
+postgres_password = os.getenv('POSTGRES_PASSWORD', 'postgres')
+postgres_port = int(os.getenv('POSTGRES_PORT', 5432))
+
+r = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
 
 create_table_query = """
 CREATE TABLE IF NOT EXISTS urls(
@@ -17,11 +26,11 @@ CREATE TABLE IF NOT EXISTS urls(
 try:
     # Establish connection
     connection = psycopg2.connect(
-        host="localhost",
-        database="urlshortener",
-        user="postgres",
-        password="postgres",
-        port="5432"
+        host=postgres_host,
+        database=postgres_db,
+        user=postgres_user,
+        password=postgres_password,
+        port=postgres_port
     )
     
     # Create a cursor object to execute queries
