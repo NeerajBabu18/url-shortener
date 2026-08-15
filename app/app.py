@@ -2,6 +2,9 @@ from flask import Flask, jsonify, render_template, request, redirect
 app = Flask(__name__)
 import secrets
 import psycopg2
+import redis
+
+r = redis.Redis(host='localhost', port=6379, decode_responses=True)
 
 create_table_query = """
 CREATE TABLE IF NOT EXISTS urls(
@@ -61,6 +64,8 @@ def redirect_to_url(short_token):
     result = cursor.fetchone()
     if result:
         print(f"Redirecting to: {result[0]}")
+        r.incr(f"clicks:{short_token}")
+        print("Number of times clicked: {}".format(r.get(f"clicks:{short_token}")))
         return redirect(result[0])
     else:
         return "URL not found", 404
