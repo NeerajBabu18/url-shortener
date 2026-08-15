@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: urlshortener
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  cache:
+    image: redis:7
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: .
+    ports:
+      - "5001:5001"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: urlshortener
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      REDIS_HOST: cache
+      REDIS_PORT: 6379
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_started
+
+volumes:
+  pgdata:

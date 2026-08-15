@@ -4,6 +4,9 @@ import secrets
 import psycopg2
 import redis
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 redis_host = os.getenv('REDIS_HOST', 'localhost')
 redis_port = int(os.getenv('REDIS_PORT', 6379))
@@ -42,11 +45,9 @@ try:
     print("Table 'urls' created successfully!")
 
 except (Exception, psycopg2.Error) as error:
-    connection.rollback()
     print(f"Error while connecting to PostgreSQL: {error}")
-
-
-url_store = {}
+    if 'connection' in locals():
+        connection.rollback()
 
 @app.route("/", methods=["GET"])
 def index():
@@ -80,4 +81,4 @@ def redirect_to_url(short_token):
         return "URL not found", 404
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(host="0.0.0.0", debug=True, port=5001)
